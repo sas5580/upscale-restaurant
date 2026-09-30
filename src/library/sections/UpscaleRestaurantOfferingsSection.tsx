@@ -140,7 +140,7 @@ type OfferingsSectionProps = {
   offerings: {
     heading: StyledTextProps;
     reverseSpin: boolean;
-    addFork: boolean;
+    addFork: number;
     items: typeof offeringsItemSource.value;
   };
 };
@@ -157,7 +157,7 @@ const defaultProps: OfferingsSectionProps = {
   offerings: {
     heading: makeText("Offerings"),
     reverseSpin: false,
-    addFork: false,
+    addFork: 0,
     items: offeringsItemSource.defaultValue,
   },
 };
@@ -216,11 +216,9 @@ const offeringsFields: YextFields<OfferingsSectionProps> = {
       },
       addFork: {
         label: msg("fields.addFork", "Add Fork"),
-        type: "radio",
-        options: [
-          { label: msg("fields.yes", "Yes"), value: true },
-          { label: msg("fields.no", "No"), value: false },
-        ],
+        type: "number",
+        min: 0,
+        step: 1,
       },
       items: {
         label: msg("fields.items", "Items"),
@@ -344,11 +342,11 @@ const UpscaleRestaurantCss = `
   margin: -140px 0 0 -32px;
   transform-style: preserve-3d;
 }
-.fb-cutlery-knife { transform: translateX(-100px) rotateZ(-18deg); }
-.fb-cutlery-spoon { transform: translateX(100px) rotateZ(18deg); }
-.fb-cutlery-orbit-with-fork .fb-cutlery-knife { transform: translate3d(-100px, 0, -58px) rotateZ(-18deg); }
-.fb-cutlery-orbit-with-fork .fb-cutlery-spoon { transform: translate3d(100px, 0, -58px) rotateZ(18deg); }
-.fb-cutlery-fork { transform: translateZ(115px); }
+.fb-cutlery-utensil {
+  transform: rotateY(var(--fb-cutlery-angle)) translateX(-100px) rotateY(calc(-1 * var(--fb-cutlery-angle))) rotateZ(var(--fb-cutlery-tilt, 0deg));
+}
+.fb-cutlery-knife { --fb-cutlery-tilt: -18deg; }
+.fb-cutlery-spoon { --fb-cutlery-tilt: 18deg; }
 .fb-cutlery-fork .fb-cutlery-head {
   left: 7px;
   width: 50px;
@@ -467,6 +465,9 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
     props.offerings.items,
     streamDocument,
   );
+  const requestedForks = Number(props.offerings.addFork);
+  const forkCount = Number.isFinite(requestedForks) ? Math.max(0, Math.floor(requestedForks)) : 0;
+  const utensils = ["knife", "spoon", ...Array.from({ length: forkCount }, () => "fork")];
   const pageStyle: OfferingsStyle = {
     ...sectionSurfaceStyle,
     "--fb-list-bullet": "currentColor",
@@ -487,21 +488,16 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
         <section className="fb-section fb-tint-section">
           <div className="fb-container fb-offerings-grid">
             <div className="fb-offerings-cutlery" aria-hidden="true">
-              <div className={props.offerings.addFork ? "fb-cutlery-orbit fb-cutlery-orbit-with-fork" : "fb-cutlery-orbit"} style={{ animationDirection: props.offerings.reverseSpin ? "reverse" : "normal" }}>
-                <div className="fb-cutlery-utensil fb-cutlery-knife">
-                  <div className="fb-cutlery-handle" />
-                  <div className="fb-cutlery-head" />
-                </div>
-                <div className="fb-cutlery-utensil fb-cutlery-spoon">
-                  <div className="fb-cutlery-handle" />
-                  <div className="fb-cutlery-head" />
-                </div>
-                {props.offerings.addFork && (
-                  <div className="fb-cutlery-utensil fb-cutlery-fork">
-                    <div className="fb-cutlery-handle" />
-                    <div className="fb-cutlery-head" />
-                  </div>
-                )}
+              <div className="fb-cutlery-orbit" style={{ animationDirection: props.offerings.reverseSpin ? "reverse" : "normal" }}>
+                {utensils.map((utensil, index) => {
+                  const style: OfferingsStyle = { "--fb-cutlery-angle": `${index * 360 / utensils.length}deg` };
+                  return (
+                    <div key={`${utensil}-${index}`} className={`fb-cutlery-utensil fb-cutlery-${utensil}`} style={style}>
+                      <div className="fb-cutlery-handle" />
+                      <div className="fb-cutlery-head" />
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <article>

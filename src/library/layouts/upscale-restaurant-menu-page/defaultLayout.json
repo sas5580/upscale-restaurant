@@ -1206,7 +1206,7 @@
               },
               "offerings": {
                 "reverseSpin": false,
-                "addFork": false,
+                "addFork": 0,
                 "items": {
                   "field": "",
                   "mappings": {
