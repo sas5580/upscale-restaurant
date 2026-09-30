@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "yext_upscale-restaurant",
+  "id": "sas-upscale-restaurant",
   "displayName": "Upscale Restaurant",
-  "description": "",
+  "description": "yummerz",
   "locales": [
     "cs",
     "da",
