@@ -2,18 +2,15 @@ import type { SectionConfig } from "@yext/visual-editor";
 import { msg, pt } from "@yext/visual-editor";
 
 import * as React from "react";
-import type { ImageType } from "@yext/pages-components";
 import {
   Background,
   EntityField,
-  Image,
   VisibilityWrapper,
   createItemSource,
   getSurfaceColorStyle,
   getThemeColorCssValue,
   resolveComponentData,
   useDocument,
-  type StyledImageValue,
   type ThemeColor,
   type TranslatableString,
   type YextComponentConfig,
@@ -22,19 +19,11 @@ import {
 } from "@yext/visual-editor";
 import { PuckComponent } from "@puckeditor/core";
 import {
-  aspectRatioOptions,
   getTextStyle,
-  hasImageSource,
   makeText,
   makeThemeColor,
   type StyledTextProps,
 } from "../shared/sectionHelpers";
-
-type StyledImageProps = {
-  image: YextEntityField<ImageType>;
-  aspectRatio: number;
-  styles: StyledImageValue;
-};
 
 type OfferingsMenuItemProps = {
   label: YextEntityField<TranslatableString>;
@@ -150,72 +139,12 @@ type OfferingsSectionProps = {
   };
   offerings: {
     heading: StyledTextProps;
-    image: StyledImageProps;
+    reverseSpin: boolean;
     items: typeof offeringsItemSource.value;
   };
 };
 
 type OfferingsStyle = React.CSSProperties & Record<`--${string}`, string>;
-type ResponsiveImageStyle = React.CSSProperties & {
-  "--fb-mobile-image-width"?: string;
-};
-
-const defaultImageStyles: StyledImageValue = {
-  borderRadius: "default",
-};
-
-const makeImageStyle = (
-  image: StyledImageProps,
-): {
-  wrapper: ResponsiveImageStyle;
-  image: React.CSSProperties;
-} => {
-  const hasCustomRadius = image.styles.borderRadius !== "default";
-  const aspectRatio = image.aspectRatio > 0 ? image.aspectRatio : undefined;
-  const borderRadius = hasCustomRadius ? image.styles.borderRadius : undefined;
-
-  return {
-    wrapper: {
-      aspectRatio,
-      borderRadius,
-      overflow: hasCustomRadius ? "hidden" : undefined,
-      width: "100%",
-      "--fb-mobile-image-width":
-        aspectRatio !== undefined ? `${360 * aspectRatio}px` : undefined,
-    },
-    image: {
-      display: "block",
-      aspectRatio,
-      width: "100%",
-      height: "auto",
-      borderRadius,
-      objectFit: "cover",
-      objectPosition: "center",
-    },
-  };
-};
-
-const makeImage = (
-  url: string,
-  width: number,
-  height: number,
-  aspectRatio: number,
-  alternateText: string,
-): StyledImageProps => ({
-  image: {
-    field: "",
-    constantValue: {
-      url,
-      width,
-      height,
-      alternateText,
-    },
-    constantValueEnabled: true,
-  },
-  aspectRatio: aspectRatio,
-  styles: defaultImageStyles,
-});
-
 const defaultProps: OfferingsSectionProps = {
   section: {
     visibleOnLivePage: true,
@@ -226,13 +155,7 @@ const defaultProps: OfferingsSectionProps = {
   },
   offerings: {
     heading: makeText("Offerings"),
-    image: makeImage(
-      "https://a.mktgcdn.com/p/fbSbItkZpsHpkc8qHH7GxvQkWzxsfm6mGc0k4Lmfl-A/1267x1900.jpg",
-      1267,
-      1900,
-      1,
-      "Offerings image",
-    ),
+    reverseSpin: false,
     items: offeringsItemSource.defaultValue,
   },
 };
@@ -281,25 +204,13 @@ const offeringsFields: YextFields<OfferingsSectionProps> = {
           },
         },
       },
-      image: {
-        label: msg("fields.image", "Image"),
-        type: "object",
-        objectFields: {
-          image: {
-            label: msg("fields.image", "Image"),
-            type: "entityField",
-            filter: { types: ["type.image"] },
-          },
-          aspectRatio: {
-            label: msg("fields.aspectRatio", "Aspect Ratio"),
-            type: "basicSelector",
-            options: aspectRatioOptions,
-          },
-          styles: {
-            label: msg("fields.imageStyles", "Image Styles"),
-            type: "styledImage",
-          },
-        },
+      reverseSpin: {
+        label: msg("fields.reverseSpin", "Reverse Spin Direction"),
+        type: "radio",
+        options: [
+          { label: msg("fields.yes", "Yes"), value: true },
+          { label: msg("fields.no", "No"), value: false },
+        ],
       },
       items: {
         label: msg("fields.items", "Items"),
@@ -390,12 +301,89 @@ const UpscaleRestaurantCss = `
   align-items: center;
   gap: 72px;
 }
-.fb-offerings-image {
+.fb-offerings-cutlery {
+  position: relative;
   width: 100%;
+  height: clamp(320px, 38vw, 480px);
+  perspective: 900px;
+  overflow: hidden;
 }
-.fb-offerings-image-content {
-  width: 100%;
-  display: block;
+.fb-offerings-cutlery::after {
+  content: "";
+  position: absolute;
+  bottom: 8%;
+  left: 20%;
+  width: 60%;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.18), transparent 70%);
+  filter: blur(8px);
+}
+.fb-cutlery-orbit {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: fb-cutlery-orbit 14s linear infinite;
+}
+.fb-cutlery-utensil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 64px;
+  height: 280px;
+  margin: -140px 0 0 -32px;
+  transform-style: preserve-3d;
+}
+.fb-cutlery-knife { transform: translateX(-100px) rotateZ(-18deg); }
+.fb-cutlery-spoon { transform: translateX(100px) rotateZ(18deg); }
+.fb-cutlery-handle,
+.fb-cutlery-head {
+  position: absolute;
+  background: linear-gradient(90deg, #626970 0%, #c6ccd1 18%, #f8fafb 40%, #a0a8b0 62%, #eef1f3 78%, #646c74 100%);
+  border: 1px solid #8b939b;
+  box-shadow: inset 2px 0 3px rgba(255, 255, 255, 0.7), inset -2px 0 3px rgba(0, 0, 0, 0.2);
+}
+.fb-cutlery-handle {
+  bottom: 0;
+  left: 22px;
+  width: 20px;
+  height: 180px;
+  border-radius: 45% 45% 9px 9px;
+}
+.fb-cutlery-head { top: 0; }
+.fb-cutlery-knife .fb-cutlery-head {
+  left: 22px;
+  width: 34px;
+  height: 128px;
+  border-radius: 4px 90% 16% 4px;
+}
+.fb-cutlery-spoon .fb-cutlery-head {
+  left: 0;
+  width: 64px;
+  height: 94px;
+  border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(ellipse at 58% 38%, #dbe0e4 0%, #939da6 35%, #eef1f3 61%, #7c858e 78%, #c6ccd1 100%);
+}
+.fb-cutlery-handle::after,
+.fb-cutlery-head::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: inherit;
+  border: inherit;
+  transform: translateZ(-4px);
+  box-shadow: 2px 1px 0 #727b83;
+}
+@keyframes fb-cutlery-orbit {
+  from { transform: rotateX(-12deg) rotateY(0deg); }
+  to { transform: rotateX(-12deg) rotateY(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fb-cutlery-orbit {
+    animation: none;
+    transform: rotateX(-12deg) rotateY(-25deg);
+  }
 }
 .fb-offerings-list {
   list-style: none;
@@ -431,17 +419,7 @@ const UpscaleRestaurantCss = `
     grid-template-columns: 1fr;
     gap: 32px;
   }
-  .fb-offerings-image {
-    aspect-ratio: unset !important;
-  }
-  .fb-offerings-image .fb-offerings-image-content {
-    max-height: 360px;
-  }
-  .fb-offerings-image .fb-offerings-image-content img {
-    margin: 0 auto;
-    max-height: 360px;
-    width: auto !important;
-  }
+  .fb-offerings-cutlery { height: 320px; }
 }
 `;
 
@@ -466,13 +444,6 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
     margin: "0 0 32px",
     color: headingColor,
   };
-  const resolvedImage = resolveComponentData(
-    props.offerings.image.image,
-    locale,
-    streamDocument,
-  );
-  const hasImage = hasImageSource(resolvedImage);
-  const imageStyles = makeImageStyle(props.offerings.image);
   const resolvedItems = offeringsItemSource.resolveItems(
     props.offerings.items,
     streamDocument,
@@ -495,27 +466,19 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
       >
         <style>{UpscaleRestaurantCss}</style>
         <section className="fb-section fb-tint-section">
-          <div
-            className="fb-container fb-offerings-grid"
-            style={{ gridTemplateColumns: hasImage ? undefined : "1fr" }}
-          >
-            {hasImage ? (
-              <EntityField
-                displayName={pt("image", "Image")}
-                fieldId={props.offerings.image.image.field}
-                constantValueEnabled={
-                  props.offerings.image.image.constantValueEnabled
-                }
-              >
-                <div className="fb-offerings-image" style={imageStyles.wrapper}>
-                  <Image
-                    image={resolvedImage}
-                    className="fb-offerings-image-content"
-                    style={imageStyles.image}
-                  />
+          <div className="fb-container fb-offerings-grid">
+            <div className="fb-offerings-cutlery" aria-hidden="true">
+              <div className="fb-cutlery-orbit" style={{ animationDirection: props.offerings.reverseSpin ? "reverse" : "normal" }}>
+                <div className="fb-cutlery-utensil fb-cutlery-knife">
+                  <div className="fb-cutlery-handle" />
+                  <div className="fb-cutlery-head" />
                 </div>
-              </EntityField>
-            ) : null}
+                <div className="fb-cutlery-utensil fb-cutlery-spoon">
+                  <div className="fb-cutlery-handle" />
+                  <div className="fb-cutlery-head" />
+                </div>
+              </div>
+            </div>
             <article>
               <EntityField
                 displayName={pt("heading", "Heading")}

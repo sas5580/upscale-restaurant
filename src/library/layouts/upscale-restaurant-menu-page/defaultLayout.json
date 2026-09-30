@@ -1205,22 +1205,7 @@
                 "visibleOnLivePage": true
               },
               "offerings": {
-                "image": {
-                  "image": {
-                    "field": "",
-                    "constantValue": {
-                      "url": "https://a.mktgcdn.com/p/fbSbItkZpsHpkc8qHH7GxvQkWzxsfm6mGc0k4Lmfl-A/1267x1900.jpg",
-                      "width": 1267,
-                      "height": 1900,
-                      "alternateText": "Offerings image"
-                    },
-                    "constantValueEnabled": true
-                  },
-                  "styles": {
-                    "borderRadius": "default"
-                  },
-                  "aspectRatio": 1
-                },
+                "reverseSpin": false,
                 "items": {
                   "field": "",
                   "mappings": {
