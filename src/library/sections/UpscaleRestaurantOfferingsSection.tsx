@@ -140,6 +140,7 @@ type OfferingsSectionProps = {
   offerings: {
     heading: StyledTextProps;
     reverseSpin: boolean;
+    addFork: boolean;
     items: typeof offeringsItemSource.value;
   };
 };
@@ -156,6 +157,7 @@ const defaultProps: OfferingsSectionProps = {
   offerings: {
     heading: makeText("Offerings"),
     reverseSpin: false,
+    addFork: false,
     items: offeringsItemSource.defaultValue,
   },
 };
@@ -206,6 +208,14 @@ const offeringsFields: YextFields<OfferingsSectionProps> = {
       },
       reverseSpin: {
         label: msg("fields.reverseSpin", "Reverse Spin Direction"),
+        type: "radio",
+        options: [
+          { label: msg("fields.yes", "Yes"), value: true },
+          { label: msg("fields.no", "No"), value: false },
+        ],
+      },
+      addFork: {
+        label: msg("fields.addFork", "Add Fork"),
         type: "radio",
         options: [
           { label: msg("fields.yes", "Yes"), value: true },
@@ -336,6 +346,15 @@ const UpscaleRestaurantCss = `
 }
 .fb-cutlery-knife { transform: translateX(-100px) rotateZ(-18deg); }
 .fb-cutlery-spoon { transform: translateX(100px) rotateZ(18deg); }
+.fb-cutlery-orbit-with-fork .fb-cutlery-knife { transform: translate3d(-100px, 0, -58px) rotateZ(-18deg); }
+.fb-cutlery-orbit-with-fork .fb-cutlery-spoon { transform: translate3d(100px, 0, -58px) rotateZ(18deg); }
+.fb-cutlery-fork { transform: translateZ(115px); }
+.fb-cutlery-fork .fb-cutlery-head {
+  left: 7px;
+  width: 50px;
+  height: 128px;
+  clip-path: polygon(0 0, 14% 0, 18% 48%, 27% 48%, 29% 0, 43% 0, 45% 48%, 55% 48%, 57% 0, 71% 0, 73% 48%, 82% 48%, 86% 0, 100% 0, 96% 60%, 70% 82%, 70% 100%, 30% 100%, 30% 82%, 4% 60%);
+}
 .fb-cutlery-handle,
 .fb-cutlery-head {
   position: absolute;
@@ -468,7 +487,7 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
         <section className="fb-section fb-tint-section">
           <div className="fb-container fb-offerings-grid">
             <div className="fb-offerings-cutlery" aria-hidden="true">
-              <div className="fb-cutlery-orbit" style={{ animationDirection: props.offerings.reverseSpin ? "reverse" : "normal" }}>
+              <div className={props.offerings.addFork ? "fb-cutlery-orbit fb-cutlery-orbit-with-fork" : "fb-cutlery-orbit"} style={{ animationDirection: props.offerings.reverseSpin ? "reverse" : "normal" }}>
                 <div className="fb-cutlery-utensil fb-cutlery-knife">
                   <div className="fb-cutlery-handle" />
                   <div className="fb-cutlery-head" />
@@ -477,6 +496,12 @@ const OfferingsSection: PuckComponent<OfferingsSectionProps> = (props) => {
                   <div className="fb-cutlery-handle" />
                   <div className="fb-cutlery-head" />
                 </div>
+                {props.offerings.addFork && (
+                  <div className="fb-cutlery-utensil fb-cutlery-fork">
+                    <div className="fb-cutlery-handle" />
+                    <div className="fb-cutlery-head" />
+                  </div>
+                )}
               </div>
             </div>
             <article>

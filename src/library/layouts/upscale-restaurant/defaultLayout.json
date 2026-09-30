@@ -622,6 +622,7 @@
               },
               "offerings": {
                 "reverseSpin": false,
+                "addFork": false,
                 "items": {
                   "field": "",
                   "mappings": {
